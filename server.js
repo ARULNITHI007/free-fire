@@ -1,27 +1,31 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const db = require('./db');
+
 dotenv.config();
-const db=require('./db');
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post("/register", (req, res) => {
+app.post('/register', (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).send("Missing fields");
+  if (!email || !password) return res.status(400).send('Missing fields');
 
-  const sql = "INSERT INTO users (email, password) VALUES (?, ?)";
+  const sql = 'INSERT INTO users (email, password) VALUES (?, ?)';
   db.query(sql, [email, password], (err, results) => {
     if (err) {
-      console.error("DB error:", err);
-      return res.status(500).send("Database error");
+      console.error('DB error:', err);
+      return res.status(500).send('Database error');
     }
-    res.status(200).send("Success");
+    res.status(200).send('Success');
   });
 });
 
-app.get("/", (req, res) => res.send("Backend running"));
+app.get('/', (req, res) => {
+  res.send('Backend running');
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
