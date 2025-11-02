@@ -1,31 +1,32 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const db = require('./db');
-
-dotenv.config();
+require("dotenv").config();
+const express = require("express");
+const mysql = require("mysql2");
+const cors = require("cors");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post('/register', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).send('Missing fields');
-
-  const sql = 'INSERT INTO users (email, password) VALUES (?, ?)';
-  db.query(sql, [email, password], (err, results) => {
-    if (err) {
-      console.error('DB error:', err);
-      return res.status(500).send('Database error');
-    }
-    res.status(200).send('Success');
-  });
+const db = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT
 });
 
-app.get('/', (req, res) => {
-  res.send('Backend running');
+db.connect((err) => {
+  if (err) {
+    console.error("❌ Database connection failed:", err);
+  } else {
+    console.log("✅ Connected to Clever Cloud MySQL!");
+  }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+app.get("/", (req, res) => {
+  res.send("Backend working on Clever Cloud!");
+});
+
+app.listen(process.env.PORT || 8080, () => {
+  console.log(`🚀 Server running on port ${process.env.PORT || 8080}`);
+});
