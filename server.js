@@ -1,37 +1,39 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const db = require('./db'); // ✅ Use your db.js connection
+require("dotenv").config();
+const express = require("express");
+const { Pool } = require("pg");
+const cors = require("cors");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ✅ PostgreSQL connection setup
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false } // Render requires SSL
+});
+
+pool.connect()
+  .then(() => console.log("✅ Connected to Render PostgreSQL Database"))
+  .catch(err => console.error("❌ Database connection failed:", err));
+
 // ✅ Test route
-app.get('/', (req, res) => {
-  res.send('Backend running successfully on Render + Clever Cloud!');
+app.get("/", (req, res) => {
+  res.send("Backend connected with Render PostgreSQL!");
 });
 
-// ✅ Example route to insert a user
-app.post('/register', (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Missing email or password' });
+// ✅ Example: Store user info
+app.post("/register", async (req, res) => {
+  const { userid, password } = req.body;
+  try {
+    await pool.query("INSERT INTO users (userid, password) VALUES ($1, $2)", [userid, password]);
+    res.send("✅ Successfully submitted!");
+  } catch (error) {
+    console.error("❌ Insert error:", error);
+    res.status(500).send("Database error");
   }
-
-  const query = 'INSERT INTO users (email, password) VALUES (?, ?)';
-  db.query(query, [email, password], (err) => {
-    if (err) {
-      console.error('❌ Insert failed:', err);
-      return res.status(500).json({ error: 'Database error' });
-    }
-    res.json({ message: '✅ Successfully registered!' });
-  });
 });
 
-// ✅ Start server
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+app.listen(process.env.PORT || 8080, () => {
+  console.log(`🚀 Server running on port ${process.env.PORT || 8080}`);
 });
