@@ -1,15 +1,23 @@
-require("dotenv").config();
-const { Pool } = require("pg");
+// db.js
+const mysql = require('mysql2');
 
-// ✅ Create PostgreSQL connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // Render requires SSL connection
+const connection = mysql.createConnection({
+  host: process.env.MYSQL_ADDON_HOST,
+  user: process.env.MYSQL_ADDON_USER,
+  password: process.env.MYSQL_ADDON_PASSWORD,
+  database: process.env.MYSQL_ADDON_DB,
+  port: process.env.MYSQL_ADDON_PORT || 3306,
+  ssl: {
+    rejectUnauthorized: true
+  }
 });
 
-// ✅ Test the database connection
-pool.connect()
-  .then(() => console.log("✅ PostgreSQL Connected Successfully!"))
-  .catch(err => console.error("❌ PostgreSQL Connection Failed:", err));
+connection.connect((err) => {
+  if (err) {
+    console.error('❌ DB Connection failed:', err);
+  } else {
+    console.log('✅ Connected to Clever Cloud MySQL Database');
+  }
+});
 
-module.exports = pool;
+module.exports = connection;
